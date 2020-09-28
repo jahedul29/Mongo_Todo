@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <h1 class="text-info mb-5">Mongo Todo</h1>
+    <div class="row">
+      <div class="col-md-6 col-sm-12 px-5">
+        <form action="/addItem" method="POST">
+          <input
+            class="form-control"
+            type="text"
+            placeholder="Title"
+            name="title"
+            id=""
+          />
+          <br />
+          <input
+            class="form-control"
+            type="text"
+            placeholder="Description"
+            name="description"
+            id=""
+          />
+          <br />
+          <input
+            class="form-control"
+            type="text"
+            placeholder="Schedule"
+            name="schedule"
+            id=""
+          />
+          <br />
+          <button class="form-control btn btn-success" type="submit">
+            Add Item
+          </button>
+        </form>
+      </div>
+      <div class="col-md-6 col-sm-12 px-5">
+        <div id="details"></div>
+      </div>
+    </div>
+    <br />
+    <br />
+    <div id="itemTableContainer">
+      <table class="table my-5" id="itemTable"></table>
+    </div>
+
+    <!-- <script src="./script.js"></script> -->
+
+    <script>
+      // Function to load all items
+      const loadAllItems = () => {
+        fetch("/getItems")
+          .then((res) => res.json())
+          .then((data) => {
+            appendTable(data);
+            console.log(data);
+          });
+      };
+
+      const appendTable = (items) => {
+        const tableContainer = document.getElementById("tableContainer");
+        const itemTable = document.getElementById("itemTable");
+        itemTable.innerHTML = null;
+
+        itemTable.innerHTML = `<tr class="bg-primary">
+          <th></th>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Schedule</th>
+          <th></th>
+        </tr>`;
+        items.map((item) => {
+          const trItem = document.createElement("tr");
+          trItem.innerHTML = `
+            <td></td>
+            <td>${item.title}</td>
+            <td>${item.description}</td>
+            <td>${item.schedule}</td>
+            <td>
+            <button class="btn btn-sm btn-warning" onclick="handleUpdateBtnClick(event, '${item._id}')">Update</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem(event, '${item._id}')">Delete</button>
+            </td>
+          `;
+          itemTable.appendChild(trItem);
+        });
+      };
+
+      loadAllItems();
+
+      //   Delete an item from database
+      const deleteItem = (event, id) => {
+        fetch(`/deleteItem/${id}`, {
+          method: "DELETE",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.deletedCount) {
+              event.target.parentNode.parentNode.style.display = "none";
+            }
+          });
+      };
+
+      //Updating a product
+      const handleUpdateBtnClick = (event, id) => {
+        console.log("id ", id, " of type ", typeof id);
+        fetch(`/getItem/${id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            const details = document.getElementById("details");
+            details.innerHTML = `
+            <input class="form-control" type="text" id="title" value="${data.title}"></input><br />
+            <input class="form-control" type="text" id="description" value="${data.description}"></input><br />
+            <input class="form-control" type="text" id="schedule" value="${data.schedule}"></input><br />
+            <button class="form-control btn btn-info" onclick="updateItem('${data._id}')">Update</button>
+            `;
+          });
+      };
+
+      const updateItem = (id) => {
+        const details = document.getElementById("details");
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+        const schedule = document.getElementById("schedule").value;
+
+        const newItem = { id, title, description, schedule };
+        fetch(`/updateItem/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newItem),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.matchedCount) {
+              details.style.display = "none";
+              loadAllItems();
+            }
+          });
+      };
+    </script>
+  </body>
+</html>

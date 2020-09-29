@@ -1,3 +1,5 @@
+const port = process.env.PORT || 3000;
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -79,6 +81,6 @@ client.connect((err) => {
   });
 });
 
-app.listen(4000, () => {
+app.listen(port, () => {
   console.log(`Listening to 4000`);
 });
